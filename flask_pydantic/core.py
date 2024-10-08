@@ -3,6 +3,7 @@ from typing import Any, Callable, Iterable, List, Optional, Tuple, Type, Union
 
 from flask import Response, current_app, jsonify, make_response, request
 from pydantic import BaseModel, ValidationError, TypeAdapter, RootModel
+from pydantic_core import ErrorDetails
 
 from .converters import convert_query_params
 from .exceptions import (
@@ -50,7 +51,13 @@ def is_iterable_of_models(content: Any) -> bool:
         return False
 
 
-def validate_many_models(model: Type[BaseModel], content: Any) -> List[BaseModel]:
+def validate_many_models(
+    model: Type[BaseModel],
+    content: Any,
+    include_error_url: bool = True,
+    include_error_context: bool = True,
+    include_error_input: bool = True,
+) -> List[BaseModel]:
     try:
         return [model(**fields) for fields in content]
     except TypeError:
@@ -64,10 +71,22 @@ def validate_many_models(model: Type[BaseModel], content: Any) -> List[BaseModel
         ]
         raise ManyModelValidationError(err)
     except ValidationError as ve:
-        raise ManyModelValidationError(ve.errors())
+        raise ManyModelValidationError(
+            ve.errors(
+                include_url=include_error_url,
+                include_context=include_error_context,
+                include_input=include_error_input,
+            )
+        )
 
 
-def validate_path_params(func: Callable, kwargs: dict) -> Tuple[dict, list]:
+def validate_path_params(
+    func: Callable,
+    kwargs: dict,
+    include_error_url: bool = True,
+    include_error_context: bool = True,
+    include_error_input: bool = True,
+) -> Tuple[dict, List[ErrorDetails]]:
     errors = []
     validated = {}
     for name, type_ in func.__annotations__.items():
@@ -77,7 +96,11 @@ def validate_path_params(func: Callable, kwargs: dict) -> Tuple[dict, list]:
             adapter = TypeAdapter(type_)
             validated[name] = adapter.validate_python(kwargs.get(name))
         except ValidationError as e:
-            err = e.errors()[0]
+            err = e.errors(
+                include_url=include_error_url,
+                include_context=include_error_context,
+                include_input=include_error_input,
+            )[0]
             err["loc"] = [name]
             errors.append(err)
     kwargs = {**kwargs, **validated}
@@ -101,6 +124,9 @@ def validate(
     response_by_alias: bool = False,
     get_json_params: Optional[dict] = None,
     form: Optional[Type[BaseModel]] = None,
+    include_error_url: bool = True,
+    include_error_context: bool = True,
+    include_error_input: bool = True,
 ):
     """
     Decorator for route methods which will validate query, body and form parameters
@@ -122,6 +148,9 @@ def validate(
         (request.body_params then contains list of models i. e. List[BaseModel])
     `response_by_alias` whether Pydantic's alias is used
     `get_json_params` - parameters to be passed to Request.get_json() function
+    `include_error_url` whether to include a URL to documentation on the error each error
+    `include_error_context` whether to include the context of each error
+    `include_error_input` whether to include the input value of each error
 
     example::
 
@@ -166,7 +195,13 @@ def validate(
         @wraps(func)
         def wrapper(*args, **kwargs):
             q, b, f, err = None, None, None, {}
-            kwargs, path_err = validate_path_params(func, kwargs)
+            kwargs, path_err = validate_path_params(
+                func,
+                kwargs,
+                include_error_url=include_error_url,
+                include_error_context=include_error_context,
+                include_error_input=include_error_input,
+            )
             if path_err:
                 err["path_params"] = path_err
             query_in_kwargs = func.__annotations__.get("query")
@@ -176,7 +211,12 @@ def validate(
                 try:
                     q = query_model(**query_params)
                 except ValidationError as ve:
-                    err["query_params"] = ve.errors()
+                    err["query_params"] = ve.errors(
+                        include_url=include_error_url,
+                        include_context=include_error_context,
+                        include_input=include_error_input,
+                    )
+
             body_in_kwargs = func.__annotations__.get("body")
             body_model = body_in_kwargs or body
             if body_model:
@@ -185,10 +225,20 @@ def validate(
                     try:
                         b = body_model(body_params)
                     except ValidationError as ve:
-                        err["body_params"] = ve.errors()
+                        err["body_params"] = ve.errors(
+                            include_url=include_error_url,
+                            include_context=include_error_context,
+                            include_input=include_error_input,
+                        )
                 elif request_body_many:
                     try:
-                        b = validate_many_models(body_model, body_params)
+                        b = validate_many_models(
+                            body_model,
+                            body_params,
+                            include_error_url,
+                            include_error_context,
+                            include_error_input,
+                        )
                     except ManyModelValidationError as e:
                         err["body_params"] = e.errors()
                 else:
@@ -202,7 +252,11 @@ def validate(
                         else:
                             raise JsonBodyParsingError()
                     except ValidationError as ve:
-                        err["body_params"] = ve.errors()
+                        err["body_params"] = ve.errors(
+                            include_url=include_error_url,
+                            include_context=include_error_context,
+                            include_input=include_error_input,
+                        )
             form_in_kwargs = func.__annotations__.get("form")
             form_model = form_in_kwargs or form
             if form_model:
@@ -211,7 +265,11 @@ def validate(
                     try:
                         f = form_model(form_params)
                     except ValidationError as ve:
-                        err["form_params"] = ve.errors()
+                        err["form_params"] = ve.errors(
+                            include_url=include_error_url,
+                            include_context=include_error_context,
+                            include_input=include_error_input,
+                        )
                 else:
                     try:
                         f = form_model(**form_params)
@@ -223,7 +281,11 @@ def validate(
                         else:
                             raise JsonBodyParsingError
                     except ValidationError as ve:
-                        err["form_params"] = ve.errors()
+                        err["form_params"] = ve.errors(
+                            include_url=include_error_url,
+                            include_context=include_error_context,
+                            include_input=include_error_input,
+                        )
             request.query_params = q
             request.body_params = b
             request.form_params = f
