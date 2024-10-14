@@ -12,14 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
-        os: [ubuntu-latest, macOS-latest]
-        exclude:  # Python 3.7 is not supported on Apple ARM64
-          - python-version: "3.7"
-            os: macos-latest
-        include: # Python 3.7 is tested with a x86 macOS version
-          - python-version: "3.7"
-            os: macos-13
+        python-version: ["3.8", "3.9", "3.10"]
 
     steps:
     - uses: actions/checkout@v4
