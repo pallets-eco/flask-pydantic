@@ -8,6 +8,16 @@
 
 Flask extension for integration of the awesome [pydantic package](https://github.com/samuelcolvin/pydantic) with [Flask](https://palletsprojects.com/p/flask/).
 
+## Pallets Community Ecosystem
+
+> [!IMPORTANT]\
+> This project is part of the Pallets Community Ecosystem. Pallets is the open
+> source organization that maintains Flask; Pallets-Eco enables community
+> maintenance of Flask extensions. If you are interested in helping maintain
+> this project, please reach out on [the Pallets Discord server][discord].
+>
+> [discord]: https://discord.gg/pallets
+
 ## Installation
 
 `python3 -m pip install Flask-Pydantic`
