@@ -1,5 +1,3 @@
--r base.pip
-
 pytest
 pytest-flask
 pytest-flake8
