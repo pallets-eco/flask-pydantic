@@ -1,0 +1,56 @@
+[project]
+name = "Flask-Pydantic"
+version = "0.12.0"
+description = "Flask extension for integration with Pydantic library."
+readme = "README.md"
+license = { file = "LICENSE.txt" }
+authors = [{ name = "Jiri Bauer" }]
+maintainers = [{ name = "Pallets", email = "contact@palletsprojects.com" }]
+classifiers = [
+    "Environment :: Web Environment",
+    "Framework :: Flask",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.7"
+dependencies = [
+    "Flask",
+    "pydantic>=2.0",
+    "typing_extensions>=4.1.1; python_version < '3.8'"
+]
+
+[project.urls]
+Donate = "https://palletsprojects.com/donate"
+Documentation = "https://flask-sqlalchemy-lite.readthedocs.io"
+Changes = "https://flask-sqlalchemy-lite.readthedocs.io/page/changes/"
+Source = "https://github.com/pallets-eco/flask-pydantic"
+Chat = "https://discord.gg/pallets"
+
+[build-system]
+requires = ["flit_core<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.module]
+name = "flask_pydantic"
+
+[tool.pytest]
+testpaths = "tests"
+addopts = "-vv --black --cov --cov-config=pyproject.toml -s"
+flake8-ignore = "E121 E122 E123 E124 E125 E126 E127 E128 E711 E712 F811 F841 H803 E501 E265 E741 W391 W503 E203"
+
+[tool.coverage.run]
+branch = true
+omit = [
+    "example/*"
+]
+include = [
+    "flask_pydantic/*"
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
