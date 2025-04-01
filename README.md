@@ -336,7 +336,7 @@ Feature requests and pull requests are welcome. For major changes, please open a
   ```
 - install development requirements
   ```bash
-  python3 -m pip install -r requirements/test.pip
+  python3 -m pip install -r requirements/test.txt
   ```
 - checkout new branch and make your desired changes (don't forget to update tests)
   ```bash
