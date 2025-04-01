@@ -41,4 +41,4 @@ jobs:
         pip install -r requirements/test.txt
     - name: Run tests and check code format
       run: |
-        python3 -m pytest -ruff --ruff-format
+        python3 -m pytest --ruff --ruff-format
