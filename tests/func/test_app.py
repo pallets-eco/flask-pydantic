@@ -1,11 +1,12 @@
-from ..util import assert_matches
 import re
 from typing import List, Optional
 
 import pytest
 from flask import jsonify, request
-from flask_pydantic import validate, ValidationError
-from pydantic import BaseModel, RootModel, ConfigDict
+from flask_pydantic import ValidationError, validate
+from pydantic import BaseModel, ConfigDict, RootModel
+
+from ..util import assert_matches
 
 
 class ArrayModel(BaseModel):
