@@ -185,7 +185,7 @@ def post(body: RequestBodyModel):
 # Example 3: both query paramters and request body
 @app.route("/both", methods=["POST"])
 @validate()
-def get_and_post(body: RequestBodyModel,query: QueryModel):
+def get_and_post(body: RequestBodyModel, query: QueryModel):
   name = body.name # From request body
   nickname = body.nickname # From request body
   age = query.age # from query parameters
@@ -297,7 +297,8 @@ class MyModel(BaseModel):
 ```
 
 and set `response_by_alias=True` in `validate` decorator
-```
+
+```python
 @app.route(...)
 @validate(response_by_alias=True)
 def my_route():
@@ -326,7 +327,7 @@ Feature requests and pull requests are welcome. For major changes, please open a
 
 - clone repository
   ```bash
-  git clone https://github.com/bauerji/flask_pydantic.git
+  git clone https://github.com/pallets-eco/flask_pydantic.git
   cd flask_pydantic
   ```
 - create virtual environment and activate it
@@ -336,7 +337,7 @@ Feature requests and pull requests are welcome. For major changes, please open a
   ```
 - install development requirements
   ```bash
-  python3 -m pip install -r requirements/test.pip
+  python3 -m pip install -r requirements/test.txt
   ```
 - checkout new branch and make your desired changes (don't forget to update tests)
   ```bash
