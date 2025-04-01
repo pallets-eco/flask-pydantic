@@ -185,7 +185,7 @@ def post(body: RequestBodyModel):
 # Example 3: both query paramters and request body
 @app.route("/both", methods=["POST"])
 @validate()
-def get_and_post(body: RequestBodyModel,query: QueryModel):
+def get_and_post(body: RequestBodyModel, query: QueryModel):
   name = body.name # From request body
   nickname = body.nickname # From request body
   age = query.age # from query parameters
