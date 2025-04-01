@@ -297,7 +297,8 @@ class MyModel(BaseModel):
 ```
 
 and set `response_by_alias=True` in `validate` decorator
-```
+
+```python
 @app.route(...)
 @validate(response_by_alias=True)
 def my_route():
@@ -326,7 +327,7 @@ Feature requests and pull requests are welcome. For major changes, please open a
 
 - clone repository
   ```bash
-  git clone https://github.com/bauerji/flask_pydantic.git
+  git clone https://github.com/pallets-eco/flask_pydantic.git
   cd flask_pydantic
   ```
 - create virtual environment and activate it
