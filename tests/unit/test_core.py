@@ -1,10 +1,9 @@
 import re
 from typing import Any, List, NamedTuple, Optional, Type, Union
-from ..util import assert_matches
 
 import pytest
 from flask import jsonify
-from flask_pydantic import validate, ValidationError
+from flask_pydantic import ValidationError, validate
 from flask_pydantic.core import convert_query_params, is_iterable_of_models
 from flask_pydantic.exceptions import (
     InvalidIterableOfModelsException,
@@ -12,6 +11,8 @@ from flask_pydantic.exceptions import (
 )
 from pydantic import BaseModel, RootModel
 from werkzeug.datastructures import ImmutableMultiDict
+
+from ..util import assert_matches
 
 
 class ValidateParams(NamedTuple):

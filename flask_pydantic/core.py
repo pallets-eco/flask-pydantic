@@ -2,7 +2,7 @@ from functools import wraps
 from typing import Any, Callable, Iterable, List, Optional, Tuple, Type, Union
 
 from flask import Response, current_app, jsonify, make_response, request
-from pydantic import BaseModel, ValidationError, TypeAdapter, RootModel
+from pydantic import BaseModel, RootModel, TypeAdapter, ValidationError
 
 from .converters import convert_query_params
 from .exceptions import (
@@ -53,7 +53,7 @@ def is_iterable_of_models(content: Any) -> bool:
 def validate_many_models(model: Type[BaseModel], content: Any) -> List[BaseModel]:
     try:
         return [model(**fields) for fields in content]
-    except TypeError:
+    except TypeError as te:
         # iteration through `content` fails
         err = [
             {
@@ -62,9 +62,9 @@ def validate_many_models(model: Type[BaseModel], content: Any) -> List[BaseModel
                 "type": "type_error.array",
             }
         ]
-        raise ManyModelValidationError(err)
+        raise ManyModelValidationError(err) from te
     except ValidationError as ve:
-        raise ManyModelValidationError(ve.errors())
+        raise ManyModelValidationError(ve.errors()) from ve
 
 
 def validate_path_params(func: Callable, kwargs: dict) -> Tuple[dict, list]:
@@ -194,13 +194,13 @@ def validate(
                 else:
                     try:
                         b = body_model(**body_params)
-                    except TypeError:
+                    except TypeError as te:
                         content_type = request.headers.get("Content-Type", "").lower()
                         media_type = content_type.split(";")[0]
                         if media_type != "application/json":
                             return unsupported_media_type_response(content_type)
                         else:
-                            raise JsonBodyParsingError()
+                            raise JsonBodyParsingError() from te
                     except ValidationError as ve:
                         err["body_params"] = ve.errors()
             form_in_kwargs = func.__annotations__.get("form")
@@ -215,13 +215,13 @@ def validate(
                 else:
                     try:
                         f = form_model(**form_params)
-                    except TypeError:
+                    except TypeError as te:
                         content_type = request.headers.get("Content-Type", "").lower()
                         media_type = content_type.split(";")[0]
                         if media_type != "multipart/form-data":
                             return unsupported_media_type_response(content_type)
                         else:
-                            raise JsonBodyParsingError
+                            raise JsonBodyParsingError from te
                     except ValidationError as ve:
                         err["form_params"] = ve.errors()
             request.query_params = q

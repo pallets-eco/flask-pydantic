@@ -1,11 +1,12 @@
-from ..util import assert_matches
 import re
 from typing import List, Optional
 
 import pytest
 from flask import jsonify, request
-from flask_pydantic import validate, ValidationError
-from pydantic import BaseModel, RootModel, ConfigDict
+from flask_pydantic import ValidationError, validate
+from pydantic import BaseModel, ConfigDict, RootModel
+
+from ..util import assert_matches
 
 
 class ArrayModel(BaseModel):
@@ -308,7 +309,7 @@ def test_custom_headers(client):
 
 
 @pytest.mark.usefixtures("app_with_custom_headers_status")
-def test_custom_headers(client):
+def test_custom_headers_status(client):
     response = client.get("/custom_headers_status")
     assert response.json == {"test": 1}
     assert response.status_code == 201
