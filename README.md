@@ -2,7 +2,6 @@
 
 [![PyPI](https://img.shields.io/pypi/v/Flask-Pydantic?color=g)](https://pypi.org/project/Flask-Pydantic/)
 [![License](https://img.shields.io/badge/license-MIT-purple)](https://github.com/bauerji/flask_pydantic/blob/master/LICENSE)
-[![Code style](https://img.shields.io/badge/code%20style-black-black)](https://github.com/psf/black)
 
 Flask extension for integration of the awesome [pydantic package](https://github.com/samuelcolvin/pydantic) with [Flask](https://palletsprojects.com/p/flask/).
 
@@ -343,11 +342,11 @@ Feature requests and pull requests are welcome. For major changes, please open a
   ```bash
   git checkout -b <your_branch_name>
   ```
-- run tests
+- make sure your code style is compliant with [Ruff](https://github.com/astral-sh/ruff). Your can check these errors and automatically correct some of them with `ruff check --select I --fix . `
+- run tests and check code format
   ```bash
-  python3 -m pytest
+  python3 -m pytest --ruff --ruff-format
   ```
-- if tests fails on Black tests, make sure You have your code compliant with style of [Black formatter](https://github.com/psf/black)
 - push your changes and create a pull request to master branch
 
 ## TODOs:
