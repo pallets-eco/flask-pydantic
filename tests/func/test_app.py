@@ -308,7 +308,7 @@ def test_custom_headers(client):
 
 
 @pytest.mark.usefixtures("app_with_custom_headers_status")
-def test_custom_headers(client):
+def test_custom_headers_status(client):
     response = client.get("/custom_headers_status")
     assert response.json == {"test": 1}
     assert response.status_code == 201
