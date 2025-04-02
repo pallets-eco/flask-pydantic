@@ -1,6 +1,14 @@
-## Version -
+## Version 0.14.0-dev
 
 Unreleased
+
+## Version 0.13.0
+
+Released 2025-04-02
+
+Features
+
+- Support for Pydantic v1 namespace. (thanks to @Merinorus)
 
 ## Version 0.12.0
 
