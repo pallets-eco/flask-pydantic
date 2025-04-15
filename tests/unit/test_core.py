@@ -1,5 +1,6 @@
 import re
-from typing import Any, List, NamedTuple, Optional, Type, Union
+import sys
+from typing import Any, List, NamedTuple, Optional, Tuple, Type, Union
 
 import pytest
 from flask import jsonify
@@ -15,13 +16,18 @@ from werkzeug.datastructures import ImmutableMultiDict
 from ..util import assert_matches
 
 
+class EmptyModel(BaseModel):
+    pass
+
+
 class ValidateParams(NamedTuple):
-    body_model: Optional[Type[BaseModel]] = None
-    query_model: Optional[Type[BaseModel]] = None
-    form_model: Optional[Type[BaseModel]] = None
-    response_model: Type[BaseModel] = None
+    body_model: Type[BaseModel] = EmptyModel
+    query_model: Type[BaseModel] = EmptyModel
+    form_model: Type[BaseModel] = EmptyModel
+    response_model: Type[BaseModel] = EmptyModel
     on_success_status: int = 200
     request_query: ImmutableMultiDict = ImmutableMultiDict({})
+    flat_request_query: bool = True
     request_body: Union[dict, List[dict]] = {}
     request_form: ImmutableMultiDict = ImmutableMultiDict({})
     expected_response_body: Optional[dict] = None
@@ -50,7 +56,25 @@ class RequestBodyModel(BaseModel):
 
 class FormModel(BaseModel):
     f1: int
-    f2: str = None
+    f2: Optional[str] = None
+
+
+class RequestWithIterableModel(BaseModel):
+    b1: List
+    b2: List[str]
+    b3: Tuple[str, int]
+    b4: Optional[List[int]] = None
+    b5: Union[Tuple[str, int], None] = None
+
+
+if sys.version_info >= (3, 10):
+    # New Python(>=3.10) syntax tests
+    class RequestWithIterableModelPy310(BaseModel):
+        b1: list
+        b2: list[str]
+        b3: tuple[str, int]
+        b4: list[int] | None = None
+        b5: tuple[str, int] | None = None
 
 
 class RequestBodyModelRoot(RootModel):
@@ -195,7 +219,75 @@ validate_test_cases = [
         ),
         id="invalid form param",
     ),
+    pytest.param(
+        ValidateParams(
+            request_query=ImmutableMultiDict(
+                [
+                    ("b1", "str1"),
+                    ("b1", "str2"),
+                    ("b2", "str1"),
+                    ("b2", "str2"),
+                    ("b3", "str"),
+                    ("b3", 123),
+                    ("b4", 1),
+                    ("b4", 2),
+                    ("b4", 3),
+                    ("b5", "str"),
+                    ("b5", 321),
+                ]
+            ),
+            flat_request_query=False,
+            expected_response_body={
+                "b1": ["str1", "str2"],
+                "b2": ["str1", "str2"],
+                "b3": ("str", 123),
+                "b4": [1, 2, 3],
+                "b5": ("str", 321),
+            },
+            query_model=RequestWithIterableModel,
+            response_model=RequestWithIterableModel,
+            expected_status_code=200,
+        ),
+        id="iterable and Optional[Iterable] fields in pydantic model in query",
+    ),
 ]
+
+if sys.version_info >= (3, 10):
+    validate_test_cases.extend(
+        [
+            pytest.param(
+                ValidateParams(
+                    request_query=ImmutableMultiDict(
+                        [
+                            ("b1", "str1"),
+                            ("b1", "str2"),
+                            ("b2", "str1"),
+                            ("b2", "str2"),
+                            ("b3", "str"),
+                            ("b3", 123),
+                            ("b4", 1),
+                            ("b4", 2),
+                            ("b4", 3),
+                            ("b5", "str"),
+                            ("b5", 321),
+                        ]
+                    ),
+                    flat_request_query=False,
+                    expected_response_body={
+                        "b1": ["str1", "str2"],
+                        "b2": ["str1", "str2"],
+                        "b3": ("str", 123),
+                        "b4": [1, 2, 3],
+                        "b5": ("str", 321),
+                    },
+                    query_model=RequestWithIterableModelPy310,
+                    response_model=RequestWithIterableModelPy310,
+                    expected_status_code=200,
+                ),
+                id="iterable and Iterable | None fields in pydantic model in query (Python 3.10+)",
+            ),
+        ]
+    )
 
 
 class TestValidate:
@@ -230,17 +322,17 @@ class TestValidate:
         assert response.status_code == parameters.expected_status_code
         assert_matches(parameters.expected_response_body, response.json)
         if 200 <= response.status_code < 300:
-            assert (
+            assert_matches(
+                parameters.request_body,
                 mock_request.body_params.model_dump(
                     exclude_none=True, exclude_defaults=True
-                )
-                == parameters.request_body
+                ),
             )
-            assert (
+            assert_matches(
+                parameters.request_query.to_dict(flat=parameters.flat_request_query),
                 mock_request.query_params.model_dump(
                     exclude_none=True, exclude_defaults=True
-                )
-                == parameters.request_query.to_dict()
+                ),
             )
 
     @pytest.mark.parametrize("parameters", validate_test_cases)
@@ -269,17 +361,17 @@ class TestValidate:
         assert_matches(parameters.expected_response_body, response.json)
         assert response.status_code == parameters.expected_status_code
         if 200 <= response.status_code < 300:
-            assert (
+            assert_matches(
+                parameters.request_body,
                 mock_request.body_params.model_dump(
                     exclude_none=True, exclude_defaults=True
-                )
-                == parameters.request_body
+                ),
             )
-            assert (
+            assert_matches(
+                parameters.request_query.to_dict(flat=parameters.flat_request_query),
                 mock_request.query_params.model_dump(
                     exclude_none=True, exclude_defaults=True
-                )
-                == parameters.request_query.to_dict()
+                ),
             )
 
     @pytest.mark.usefixtures("request_ctx")
@@ -468,17 +560,17 @@ class TestValidate:
         assert response.status_code == parameters.expected_status_code
         assert_matches(parameters.expected_response_body, response.json)
         if 200 <= response.status_code < 300:
-            assert (
+            assert_matches(
+                parameters.request_body,
                 mock_request.body_params.model_dump(
                     exclude_none=True, exclude_defaults=True
-                )
-                == parameters.request_body
+                ),
             )
-            assert (
+            assert_matches(
+                parameters.request_query.to_dict(flat=parameters.flat_request_query),
                 mock_request.query_params.model_dump(
                     exclude_none=True, exclude_defaults=True
-                )
-                == parameters.request_query.to_dict()
+                ),
             )
 
     def test_fail_validation_custom_status_code(self, app, request_ctx, mocker):

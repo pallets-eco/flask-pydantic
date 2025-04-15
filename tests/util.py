@@ -21,7 +21,7 @@ def assert_matches(expected: ExpectedType, actual: ActualType):
         assert set(expected.keys()) == set(actual.keys())
         for key, value in expected.items():
             assert_matches(value, actual[key])
-    elif isinstance(expected, list):
+    elif isinstance(expected, (list, tuple)):
         assert len(expected) == len(actual)
         for a, b in zip(expected, actual):
             assert_matches(a, b)
