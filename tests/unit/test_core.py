@@ -59,19 +59,21 @@ class FormModel(BaseModel):
 
 
 class RequestBodyWithIterableModel(BaseModel):
-    b1: List[str]
-    b2: Tuple[str, int]
-    b3: Optional[List[int]] = None
-    b4: Union[Tuple[str, int], None] = None
+    b1: List
+    b2: List[str]
+    b3: Tuple[str, int]
+    b4: Optional[List[int]] = None
+    b5: Union[Tuple[str, int], None] = None
 
 
 if sys.version_info >= (3, 10):
     # New Python(>=3.10) syntax tests
     class RequestBodyWithIterableModelPy310(BaseModel):
-        b1: list[str]
-        b2: tuple[str, int]
-        b3: list[int] | None = None
-        b4: tuple[str, int] | None = None
+        b1: list
+        b2: list[str]
+        b3: tuple[str, int]
+        b4: list[int] | None = None
+        b5: tuple[str, int] | None = None
 
 
 class RequestBodyModelRoot(RootModel):
@@ -220,21 +222,23 @@ validate_test_cases = [
         ValidateParams(
             body_model=RequestBodyWithIterableModel,
             request_body={
-                "b1": ["str1", "str1"],
-                "b2": ("str", 123),
-                "b3": [1, 2, 3],
-                "b4": ("str", 321),
+                "b1": ["str1", "str2"],
+                "b2": ["str1", "str2"],
+                "b3": ("str", 123),
+                "b4": [1, 2, 3],
+                "b5": ("str", 321),
             },
             expected_response_body={
-                "b1": ["str1", "str1"],
-                "b2": ("str", 123),
-                "b3": [1, 2, 3],
-                "b4": ("str", 321),
+                "b1": ["str1", "str2"],
+                "b2": ["str1", "str2"],
+                "b3": ("str", 123),
+                "b4": [1, 2, 3],
+                "b5": ("str", 321),
             },
             response_model=RequestBodyWithIterableModel,
             expected_status_code=200,
         ),
-        id="ASASD",
+        id="iterable and Optional[Iterable] fields in pydantic model",
     ),
 ]
 
@@ -245,21 +249,23 @@ if sys.version_info >= (3, 10):
                 ValidateParams(
                     body_model=RequestBodyWithIterableModelPy310,
                     request_body={
-                        "b1": ["str1", "str1"],
-                        "b2": ("str", 123),
-                        "b3": [1, 2, 3],
-                        "b4": ("str", 321),
+                        "b1": ["str1", "str2"],
+                        "b2": ["str1", "str2"],
+                        "b3": ("str", 123),
+                        "b4": [1, 2, 3],
+                        "b5": ("str", 321),
                     },
                     expected_response_body={
-                        "b1": ["str1", "str1"],
-                        "b2": ("str", 123),
-                        "b3": [1, 2, 3],
-                        "b4": ("str", 321),
+                        "b1": ["str1", "str2"],
+                        "b2": ["str1", "str2"],
+                        "b3": ("str", 123),
+                        "b4": [1, 2, 3],
+                        "b5": ("str", 321),
                     },
                     response_model=RequestBodyWithIterableModelPy310,
                     expected_status_code=200,
                 ),
-                id="ASASD",
+                id="iterable and Iterable | None fields in pydantic model (Python 3.10+)",
             ),
         ]
     )
