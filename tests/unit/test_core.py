@@ -1,5 +1,6 @@
 import re
-from typing import Any, List, NamedTuple, Optional, Type, Union
+import sys
+from typing import Any, List, NamedTuple, Optional, Tuple, Type, Union
 
 import pytest
 from flask import jsonify
@@ -15,11 +16,15 @@ from werkzeug.datastructures import ImmutableMultiDict
 from ..util import assert_matches
 
 
+class EmptyModel(BaseModel):
+    pass
+
+
 class ValidateParams(NamedTuple):
-    body_model: Optional[Type[BaseModel]] = None
-    query_model: Optional[Type[BaseModel]] = None
-    form_model: Optional[Type[BaseModel]] = None
-    response_model: Type[BaseModel] = None
+    body_model: Type[BaseModel] = EmptyModel
+    query_model: Type[BaseModel] = EmptyModel
+    form_model: Type[BaseModel] = EmptyModel
+    response_model: Type[BaseModel] = EmptyModel
     on_success_status: int = 200
     request_query: ImmutableMultiDict = ImmutableMultiDict({})
     request_body: Union[dict, List[dict]] = {}
@@ -50,7 +55,23 @@ class RequestBodyModel(BaseModel):
 
 class FormModel(BaseModel):
     f1: int
-    f2: str = None
+    f2: Optional[str] = None
+
+
+class RequestBodyWithIterableModel(BaseModel):
+    b1: List[str]
+    b2: Tuple[str, int]
+    b3: Optional[List[int]] = None
+    b4: Union[Tuple[str, int], None] = None
+
+
+if sys.version_info >= (3, 10):
+    # New Python(>=3.10) syntax tests
+    class RequestBodyWithIterableModelPy310(BaseModel):
+        b1: list[str]
+        b2: tuple[str, int]
+        b3: list[int] | None = None
+        b4: tuple[str, int] | None = None
 
 
 class RequestBodyModelRoot(RootModel):
@@ -195,7 +216,53 @@ validate_test_cases = [
         ),
         id="invalid form param",
     ),
+    pytest.param(
+        ValidateParams(
+            body_model=RequestBodyWithIterableModel,
+            request_body={
+                "b1": ["str1", "str1"],
+                "b2": ("str", 123),
+                "b3": [1, 2, 3],
+                "b4": ("str", 321),
+            },
+            expected_response_body={
+                "b1": ["str1", "str1"],
+                "b2": ("str", 123),
+                "b3": [1, 2, 3],
+                "b4": ("str", 321),
+            },
+            response_model=RequestBodyWithIterableModel,
+            expected_status_code=200,
+        ),
+        id="ASASD",
+    ),
 ]
+
+if sys.version_info >= (3, 10):
+    validate_test_cases.extend(
+        [
+            pytest.param(
+                ValidateParams(
+                    body_model=RequestBodyWithIterableModelPy310,
+                    request_body={
+                        "b1": ["str1", "str1"],
+                        "b2": ("str", 123),
+                        "b3": [1, 2, 3],
+                        "b4": ("str", 321),
+                    },
+                    expected_response_body={
+                        "b1": ["str1", "str1"],
+                        "b2": ("str", 123),
+                        "b3": [1, 2, 3],
+                        "b4": ("str", 321),
+                    },
+                    response_model=RequestBodyWithIterableModelPy310,
+                    expected_status_code=200,
+                ),
+                id="ASASD",
+            ),
+        ]
+    )
 
 
 class TestValidate:
