@@ -2,6 +2,14 @@
 
 Unreleased
 
+## Version 0.13.1
+
+Released 2025-04-23
+
+Features
+
+- Better support for iterables in query parameters. (thanks to @oda02)
+
 ## Version 0.13.0
 
 Released 2025-04-02
