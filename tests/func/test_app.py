@@ -1,3 +1,4 @@
+import asyncio
 import re
 from typing import List, Optional
 
@@ -145,6 +146,21 @@ def app_with_camel_route(app):
             result_of_addition=query.x + query.y,
             result_of_multiplication=query.x * query.y,
         )
+
+
+@pytest.fixture
+def app_with_async_route(app):
+    class RequestModel(BaseModel):
+        n: int
+
+    class ResultModel(BaseModel):
+        result: int
+
+    @app.route("/compute", methods=["POST"])
+    @validate()
+    async def compute(body: RequestModel):
+        await asyncio.sleep(0.1)
+        return ResultModel(result=2 * body.n)
 
 
 test_cases = [
@@ -469,3 +485,34 @@ class TestCustomResponse:
             response.json["body"],
         )
         assert response.status_code == 422
+
+
+@pytest.mark.usefixtures("app_with_async_route")
+class TestAsyncRoute:
+    def test_fails(self, client):
+        response = client.post("/compute", json={})
+
+        assert_matches(
+            {
+                "validation_error": {
+                    "body_params": [
+                        {
+                            "input": {},
+                            "loc": ["n"],
+                            "msg": "Field required",
+                            "type": "missing",
+                            "url": re.compile(
+                                r"https://errors\.pydantic\.dev/.*/v/missing"
+                            ),
+                        }
+                    ]
+                }
+            },
+            response.json,
+        )
+
+    def test_succeeds(self, client):
+        expected_response = {"result": 2}
+        response = client.post("/compute", json={"n": 1})
+
+        assert_matches(expected_response, response.json)

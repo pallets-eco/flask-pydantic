@@ -335,6 +335,10 @@ Feature requests and pull requests are welcome. For major changes, please open a
   python3 -m venv venv
   source venv/bin/activate
   ```
+- install runtime dependencies
+  ```bash
+  python3 -m pip install -e .
+  ```
 - install development requirements
   ```bash
   python3 -m pip install -r requirements/test.txt

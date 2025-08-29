@@ -282,7 +282,7 @@ def validate(
                     return make_response(
                         jsonify({"validation_error": err}), status_code
                     )
-            res = func(*args, **kwargs)
+            res = current_app.ensure_sync(func)(*args, **kwargs)
 
             if response_many:
                 if is_iterable_of_models(res):
