@@ -1,6 +1,6 @@
 [project]
 name = "Flask-Pydantic"
-version = "0.13.1"
+version = "0.13.2"
 description = "Flask extension for integration with Pydantic library."
 readme = "README.md"
 license = { file = "LICENSE.txt" }

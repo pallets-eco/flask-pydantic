@@ -2,6 +2,14 @@
 
 Unreleased
 
+## Version 0.13.2
+
+Released 2025-8-31
+
+Features
+
+- Support async Flask views. (thanks to @kouk)
+
 ## Version 0.13.1
 
 Released 2025-04-23
