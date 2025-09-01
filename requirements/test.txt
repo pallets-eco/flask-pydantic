@@ -3,3 +3,4 @@ pytest-flask
 pytest-coverage
 pytest-mock
 pytest-ruff
+Flask[async]
